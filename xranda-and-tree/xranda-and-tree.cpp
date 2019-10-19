@@ -1,15 +1,16 @@
 #include <iostream>
 #include <vector>
 #include <stack>
+#include <unordered_set>
 
 using namespace std;
 
 struct Edge {
-    unsigned int destNodeId;
-    double weight;
+    long long destNodeId;
+    long long weight;
 
     // Constructors
-    Edge(unsigned int destNodeId, const double & weight) {
+    Edge(long long destNodeId, const long long & weight) {
         this->weight = weight;
         this->destNodeId = destNodeId;
     }
@@ -21,52 +22,59 @@ struct Edge {
 
 class Node {
 public:
-    unsigned int id;
+    long long id;
     vector<Edge> edges;
-
-    // ---- Equality operator
-    bool operator==(const Node &d2) const;
 
     Node() {}
 
-    Node(unsigned int id, unsigned int destID, unsigned int weight) {
+    Node(long long id, long long destID, long long weight) {
         this->id = id;
         this->edges.push_back(Edge(destID, weight));
     }
 
-    Node(const Node &  node, unsigned int lastNodeId , double totalWeight) {
+    Node(const Node &  node, long long lastNodeId , long long totalWeight) {
         this->id = node.id;
         this->edges = node.edges;
     }
 
-    Node(unsigned int id) {
+    Node(long long id) {
         this->id = id;
+    }
+
+    bool operator==(const Node& d2) const{
+        return this->id == d2.id;
     }
 };
 
+struct NodeHash {
+    bool operator()(const Node &d1, const Node &d2) const {
+        return d1 == d2;
+    }
+
+    int operator()(const Node &d) const {
+        return d.id;
+    }
+};
+
+typedef unordered_set<Node, NodeHash, NodeHash> NodeHashTable;
+
 class Graph {
 public:
-    vector<Node> nodes;
+    NodeHashTable nodes;
     // ---- constructor
     Graph() {}
 
     // ---- Nodes
-    unsigned int addNode(unsigned int id, unsigned int destID, unsigned int weight) {
-        nodes.push_back(Node(id, destID, weight));
+    void addNode(long long id) {
+        nodes.insert(Node(id));
     }
 
-    unsigned int addNode(unsigned int id) {
-        nodes.push_back(Node(id));
-    }
-
-    Node& getNodeWithID(unsigned int id) const {
-        for (unsigned int i = 0; i < nodes.size(); i++)
-            if (nodes.at(i).id == id)
-                return const_cast<Node &>(nodes.at(i));
+    Node& getNodeWithID(long long id) const {
+        return const_cast<Node &>(*(nodes.find(Node(id))));
     } // we need to return the reference so we can set the node type when parsing
 
-    unsigned int getEdgeWeight(unsigned int sourceID, unsigned int destID) {
-        for (unsigned int i = 0; i < this->getNodeWithID(sourceID).edges.size(); i++) {
+    long long getEdgeWeight(long long sourceID, long long destID) {
+        for (size_t i = 0; i < this->getNodeWithID(sourceID).edges.size(); i++) {
             if (this->getNodeWithID(sourceID).edges.at(i).destNodeId == destID)
                 return this->getNodeWithID(sourceID).edges.at(i).weight;
         }
@@ -75,7 +83,7 @@ public:
 
 
 
-int dfs(Graph graph, unsigned int sourceID, unsigned int destID, stack<unsigned int>& visitedNodes, vector<bool>& visited) {
+int dfs(Graph graph, long long sourceID, long long destID, stack<long long>& visitedNodes, vector<bool>& visited) {
     visitedNodes.push(sourceID);
     visited.at(sourceID) = true;
 
@@ -84,13 +92,13 @@ int dfs(Graph graph, unsigned int sourceID, unsigned int destID, stack<unsigned 
 
     // get nodes
     Node sourceNode = graph.getNodeWithID(sourceID);
-    vector<unsigned int> childNodes;
-    for (unsigned int i = 0; i < sourceNode.edges.size(); i++) {
+    vector<long long> childNodes;
+    for (size_t i = 0; i < sourceNode.edges.size(); i++) {
         if (!visited.at(sourceNode.edges.at(i).destNodeId))
             childNodes.push_back(sourceNode.edges.at(i).destNodeId);
     }
 
-    for (unsigned int i = 0; i < childNodes.size(); i++) {
+    for (size_t i = 0; i < childNodes.size(); i++) {
         if (dfs(graph, childNodes.at(i), destID, visitedNodes, visited)) {
             return 1;
         }
@@ -102,23 +110,23 @@ int dfs(Graph graph, unsigned int sourceID, unsigned int destID, stack<unsigned 
     return 0;
 }
 
-unsigned int searchPath(Graph graph, unsigned int sourceID, unsigned int destID) {
-    stack<unsigned int> visitedNodes;
+long long searchPath(Graph graph, long long sourceID, long long destID) {
+    stack<long long> visitedNodes;
 
     Node sourceNode = graph.getNodeWithID(sourceID);
 
     vector<bool> visited;
-    for(unsigned int i = 0; i <= graph.nodes.size(); i++) {
+    for(size_t i = 0; i <= graph.nodes.size(); i++) {
         visited.push_back(false);
     }
 
     dfs(graph, sourceID, destID, visitedNodes, visited);
 
-    unsigned int largestEdge = 0;
+    long long largestEdge = 0;
     while(visitedNodes.size() > 1) {
-        unsigned int top = visitedNodes.top();
+        long long top = visitedNodes.top();
         visitedNodes.pop();
-        unsigned int possibleLargestEdge = graph.getEdgeWeight(top, visitedNodes.top());
+        long long possibleLargestEdge = graph.getEdgeWeight(top, visitedNodes.top());
         if (largestEdge < possibleLargestEdge)
             largestEdge = possibleLargestEdge;
     }
@@ -130,29 +138,24 @@ int main() {
 
     Graph graph = Graph();
 
-    unsigned int numNodes;
+    long long numNodes;
     cin >> numNodes;
-    for (unsigned int i = 1; i <= numNodes; i++) {
+    for (long long i = 1; i <= numNodes; i++) {
         graph.addNode(i);
     }
 
-    for (unsigned int i = 0; i < numNodes - 1; i++) {
-        unsigned int A, B, W;
+    for (long long i = 0; i < numNodes - 1; i++) {
+        long long A, B, W;
         cin >> A >> B >> W;
         graph.getNodeWithID(A).edges.push_back(Edge(B, W));
         graph.getNodeWithID(B).edges.push_back(Edge(A, W));
     }
 
-    unsigned int sum = 0;
-    for (unsigned int i = 1; i <= graph.nodes.size(); i++) {
-        for(unsigned int j = i+1; j <= graph.nodes.size(); j++) {
+    long long sum = 0;
+    for (size_t i = 1; i <= graph.nodes.size(); i++) {
+        for(size_t j = i+1; j <= graph.nodes.size(); j++) {
             sum += searchPath(graph, i, j);
         }
     }
     cout << sum << endl;
 }
-
-
-
-
-
