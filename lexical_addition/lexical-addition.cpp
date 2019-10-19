@@ -1,10 +1,10 @@
 #include <iostream>
-#include <stack>
+#include <vector>
 
 using namespace std;
 
 int main() {
-    long long int N, A, B;
+    long int N, A, B;
     cin >> N >> A >> B;
     if (A * 2 <= N)
         cout << "YES" << endl;
@@ -13,27 +13,35 @@ int main() {
         return 0;
     }
 
-    long long int numCoins[N];
-    long long int best[N];
+    long int numCoins[N + 1];
+    long int best[N + 1];
 
-    for(int i = 0; i < N; i++){
-        numCoins[i] = __LONG_LONG_MAX__;
+    for(int i = 0; i <= N; i++){
+        numCoins[i] = INT32_MAX;
         best[i] = 0;
     }
+    numCoins[0] = 0;
 
-    for (int i = A; i <= B; i++){
-        for(int m = i; m <= N; m++){
-            if((1 + numCoins[m - i]) <= numCoins[m]){
+    for (long int i = A; i <= B; i++) {
+        for(long int m = i; m <= N; m++) {
+            if((1 + numCoins[m - i]) <= numCoins[m] && (m - i) >= 0) {
                 numCoins[m] = 1 + numCoins[m - i];
                 best[m] = i;
             }
         }
     }
-    // int i = 0;
-    // while(i <= N) {
-    //     cout << best[i] << endl;
-    //     i++;
-    // }
+
+    vector<long int> outputArray;
+
+    while(N > 1) {
+        outputArray.push_back(best[N]);
+        N = N - best[N];
+    }
+
+    while(!outputArray.empty()) {
+        cout << outputArray.back() << " ";
+        outputArray.pop_back();
+    }
 
     return 0;
 }
