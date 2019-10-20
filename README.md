@@ -4,9 +4,9 @@
 
 ` These team scored Top 10 in the National Portugal's Leadership board `
 ## Authors
-* Gonçalo Marantes - -[Marantesss](https://github.com/Marantesss) 
+* Gonçalo Marantes -[Marantesss](https://github.com/Marantesss) 
 * Beatriz Garrido - [bgarrido7](https://github.com/bgarrido7)
-* Cajó Alburquerque - [CajoAlbuquerque]https://github.com/CajoAlbuquerque
+* Cajó Alburquerque - [CajoAlbuquerque](https://github.com/CajoAlbuquerque)
 
 # Pyhton Stuff
 
